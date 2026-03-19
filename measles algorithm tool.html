@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Measles Response & PEP Assistant — Ops Dashboard</title>
+
+<style>
+  :root{
+    --bg:#eaf4ff;
+    --card:#ffffff;
+    --panel:#f5faff;
+    --panel2:#eef7ff;
+    --headerBg:rgba(255,255,255,0.92);
+
+    --text:#18324a;
+    --sub:#5f7488;
+
+    --accent:#5aaee8;
+    --accent2:#8db7f0;
+
+    --ok:#1f9d68;
+    --warn:#c98a11;
+    --bad:#c94b62;
+
+    --border:#d5e3f0;
+    --borderStrong:#bfd4e5;
+
+    --shadow:0 14px 34px rgba(42,82,120,0.10);
+    --shadow2:0 8px 24px rgba(42,82,120,0.08);
+
+    --r1:18px;
+    --r2:14px;
+    --gap:14px;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+    background:
+      radial-gradient(1100px 650px at 10% -10%, rgba(90,174,232,0.18) 0%, rgba(90,174,232,0) 55%),
+      radial-gradient(900px 550px at 92% 0%, rgba(141,183,240,0.16) 0%, rgba(141,183,240,0) 55%),
+      linear-gradient(180deg, #f5faff 0%, #eaf4ff 100%);
+    color:var(--text);
+  }
+
+  .wrap{max-width:1180px;margin:18px auto;padding:0 16px 40px}
+
+  header{
+    position:sticky; top:0; z-index:20;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:14px 16px;
+    border:1px solid var(--borderStrong);
+    border-radius:var(--r1);
+    background:var(--headerBg);
+    backdrop-filter: blur(10px);
+    margin-bottom:16px;
+    box-shadow:var(--shadow2);
+  }
+  .hdrLeft{display:flex;align-items:center;gap:12px}
+  header h1{
+    margin:0;
+    font-size:18px;
+    letter-spacing:0.2px;
+    line-height:1.2;
+    color:var(--text);
+  }
+
+  .pill{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:5px 10px;border-radius:999px;
+    border:1px solid var(--borderStrong);
+    font-size:12px;
+    background:#f7fbff;
+    color:var(--text);
+    white-space:nowrap;
+  }
+  .pillDot{width:8px;height:8px;border-radius:999px;background:var(--accent)}
+
+  .grid{display:grid;gap:16px}
+  @media(min-width:980px){.grid{grid-template-columns:1fr 1fr}}
+.grid > *,
+.row > *,
+.twoCol > *,
+.metric > *,
+.field,
+.check,
+.card,
+.body {
+  min-width: 0;
+}
+
+.check label,
+.metric .v,
+.note {
+  overflow-wrap: anywhere;
+}
+  .card{
+    background:linear-gradient(180deg,#ffffff,#f8fbff);
+    border:1px solid var(--borderStrong);
+    border-radius:var(--r1);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+
+  .caseCard{
+    background:
+      radial-gradient(900px 520px at 10% -20%, rgba(31,157,104,0.10) 0%, rgba(31,157,104,0) 60%),
+      radial-gradient(900px 520px at 110% 0%, rgba(31,157,104,0.06) 0%, rgba(31,157,104,0) 62%),
+      linear-gradient(180deg, #ffffff, #f8fcff);
+    border-color: rgba(31,157,104,0.28);
+    box-shadow:
+      0 0 0 2px rgba(31,157,104,0.06),
+      var(--shadow);
+  }
+  .contactCard{
+    background:
+      radial-gradient(900px 520px at 10% -20%, rgba(90,174,232,0.12) 0%, rgba(90,174,232,0) 60%),
+      radial-gradient(900px 520px at 110% 0%, rgba(90,174,232,0.07) 0%, rgba(90,174,232,0) 62%),
+      linear-gradient(180deg, #ffffff, #f8fcff);
+    border-color: rgba(90,174,232,0.30);
+    box-shadow:
+      0 0 0 2px rgba(90,174,232,0.06),
+      var(--shadow);
+  }
+  .caseCard h2{ background:#eefaf4; }
+  .contactCard h2{ background:#eef7ff; }
+
+  .card h2{
+    margin:0;padding:14px 16px;
+    border-bottom:1px solid var(--border);
+    font-size:13px;text-transform:uppercase;letter-spacing:.6px;
+    display:flex;justify-content:space-between;align-items:center;
+    color:var(--text);
+  }
+
+  .card .body{padding:16px}
+
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
+  @media(max-width:760px){.row{grid-template-columns:1fr}}
+
+  .twoCol{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
+  @media(max-width:760px){.twoCol{grid-template-columns:1fr}}
+
+  .field{display:flex;flex-direction:column;gap:7px}
+  label{
+    font-size:12px;
+    color:var(--sub);
+    letter-spacing:0.2px;
+    font-weight:600;
+  }
+
+ input:not([type="checkbox"]),
+select{
+  width: 100%;
+  min-width: 0;
+  background:#ffffff;
+  border:1px solid var(--borderStrong);
+  color:var(--text);
+  border-radius:12px;
+  padding:11px 12px;
+  outline:none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.85);
+}
+ input:not([type="checkbox"]):focus,
+select:focus{
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(90,174,232,0.16);
+}
+
+  .check{
+    display:flex;gap:10px;align-items:flex-start;
+    padding:10px 12px;border-radius:12px;
+    border:1px solid var(--border);
+    background:#f8fbff;
+  }
+  .check label{
+    margin-top:1px;
+    font-size:13px;
+    color:var(--text);
+    letter-spacing:0;
+    font-weight:500;
+  }
+  input[type="checkbox"]{
+    width:18px;height:18px;
+    accent-color: var(--accent);
+    margin-top:1px;
+  }
+
+  .divider{height:1px;background:var(--border);margin:14px 0}
+
+  .muted{
+    background:linear-gradient(180deg, #fbfdff, #f3f9ff);
+    border:1px solid var(--borderStrong);
+    padding:14px;border-radius:var(--r2);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
+  }
+
+  .sectionTitle{
+    margin:0 0 12px 0;
+    font-size:16px;
+    color:var(--text);
+  }
+
+  .metric{
+    display:grid;
+    grid-template-columns:minmax(140px,170px) minmax(0, 1fr);
+    gap:10px;
+    align-items:start;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:#ffffff;
+    margin-top:10px;
+  }
+  @media(max-width:760px){ .metric{grid-template-columns:1fr} }
+  .metric .k{
+    font-size:12px;
+    color:var(--sub);
+    letter-spacing:0.2px;
+    font-weight:700;
+  }
+  .metric .v{font-size:14px}
+
+  .note{font-size:12px;color:var(--sub);line-height:1.4;margin-top:10px}
+  .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+
+  .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  button{
+    padding:10px 12px;border-radius:12px;
+    border:1px solid var(--borderStrong);
+    background:#ffffff;
+    color:var(--text);
+    cursor:pointer;
+    transition: transform .06s ease, border-color .15s ease, background .15s ease;
+    font-weight:700;
+  }
+  button:hover{border-color:#9bc4e6; background:#f3f9ff}
+  button:active{transform: translateY(1px)}
+
+  .muted ul li{ margin: 6px 0; }
+
+  footer{margin-top:14px;font-size:12px;color:var(--sub)}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+<header>
+  <div class="hdrLeft">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 13h8V3H3v10Zm0 8h8v-6H3v6Zm10 0h8V11h-8v10Zm0-18v6h8V3h-8Z" stroke="currentColor" stroke-width="1.5"/>
+    </svg>
+    <h1>Measles Response &amp; PEP Assistant</h1>
+    <span class="pill"><span class="pillDot"></span>Ops dashboard</span>
+  </div>
+  <div class="pill">Version 1.1 Feb 2026</div>
+</header>
+
+<div class="grid">
+
+  <!-- CASE CARD -->
+  <div class="card caseCard">
+    <h2>
+      Case — Classification &amp; Isolation
+    </h2>
+    <div class="body">
+
+      <div class="row">
+        <div class="check">
+          <input id="rashPresent" type="checkbox">
+          <label for="rashPresent"><strong>Rash present</strong> (maculopapular/generalized or measles-like)</label>
+        </div>
+
+        <div class="field">
+          <label for="rashOnset">Rash onset (if known)</label>
+          <input id="rashOnset" type="date">
+        </div>
+
+        <div class="check">
+          <input id="rash3d" type="checkbox">
+          <label for="rash3d">Rash lasted ≥3 days (surveillance clinical description)</label>
+        </div>
+
+        <div class="check">
+          <input id="feverAny" type="checkbox">
+          <label for="feverAny"><strong>Fever (any)</strong> (subjective or documented)</label>
+        </div>
+
+        <div class="check">
+          <input id="fever101" type="checkbox">
+          <label for="fever101">Fever ≥101°F (38.3°C) (surveillance clinical description)</label>
+        </div>
+
+        <div class="check">
+          <input id="ccc" type="checkbox">
+          <label for="ccc">Cough OR Coryza OR Conjunctivitis</label>
+        </div>
+
+        <div class="check">
+          <input id="koplikSpots" type="checkbox">
+          <label for="koplikSpots">Koplik spots present</label>
+        </div>
+
+        <div class="check">
+          <input id="caseVaccinated" type="checkbox">
+          <label for="caseVaccinated">Case vaccinated</label>
+        </div>
+
+        <div class="field">
+          <label for="labPCR">Measles rRT-PCR</label>
+          <select id="labPCR">
+            <option value="na">Not done</option>
+            <option value="pending">Pending</option>
+            <option value="pos">Positive</option>
+            <option value="neg">Negative</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="labIgM">Measles IgM</label>
+          <select id="labIgM">
+            <option value="na">Not done</option>
+            <option value="pending">Pending</option>
+            <option value="pos">Positive</option>
+            <option value="neg">Negative</option>
+          </select>
+        </div>
+
+        <div class="check">
+          <input id="epiLink" type="checkbox">
+          <label for="epiLink">Direct epi-link to a lab-confirmed measles case</label>
+        </div>
+
+        <div class="check">
+          <input id="caseImmunocompromised" type="checkbox">
+          <label for="caseImmunocompromised">Case immunocompromised (consider longer precautions)</label>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="muted">
+        <h3 class="sectionTitle">Next steps</h3>
+
+        <div class="metric">
+          <div class="k">Case classification</div>
+          <div class="v" id="caseClass">—</div>
+        </div>
+
+        <div class="metric">
+          <div class="k">Order testing</div>
+          <div class="v" id="testingGuidance">
+            <div class="note" style="margin:0">Testing guidance will appear here.</div>
+          </div>
+        </div>
+
+        <div class="metric">
+          <div class="k">Isolation guidance</div>
+          <div class="v" id="isolationGuidance">
+            <div class="note" style="margin:0">Isolation guidance will appear here.</div>
+          </div>
+        </div>
+
+        <div class="metric">
+          <div class="k">Isolation timeline</div>
+          <div class="v" id="caseTiming">Enter rash onset to calculate.</div>
+        </div>
+
+        <div class="metric">
+          <div class="k">Reporting / coordination</div>
+          <div class="v" id="reportingGuidance">
+            <div class="note" style="margin:0">Reporting guidance will appear here.</div>
+          </div>
+        </div>
+
+        <div class="btns" style="margin-top:10px">
+          <button id="clearCaseBtn" type="button">Clear case fields</button>
+        </div>
+
+        
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CONTACT CARD -->
+  <div class="card contactCard">
+    <h2>
+      Contact — PEP, Monitoring, Exclusion
+    </h2>
+    <div class="body">
+
+      <div class="twoCol">
+        <div class="field">
+          <label for="firstExposure">Initial exposure date (first exposure)</label>
+          <input id="firstExposure" type="date">
+        </div>
+        <div class="field">
+          <label for="lastExposure">Last exposure date</label>
+          <input id="lastExposure" type="date">
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:14px">
+        <div class="field">
+          <label for="today">Today</label>
+          <input id="today" type="date">
+        </div>
+
+        <div class="field">
+          <label for="contactCategory">Contact type</label>
+          <select id="contactCategory">
+            <option value="preschool">Pre-school student</option>
+            <option value="k12">Student (grades K–12)</option>
+            <option value="postHS">Post-high-school student</option>
+            <option value="hcp">Healthcare personnel (HCP)</option>
+            <option value="closeContactImmunocomp">Close contact of immunocompromised person</option>
+            <option value="hivNotSevere">Person with HIV (not severely immunosuppressed)</option>
+            <option value="adultOther">All other adult contacts</option>
+	</select>
+        </div>
+
+        <div class="field">
+          <label for="docDoses">Documented measles containing vaccine doses (MMR/MMRV)</label>
+          <select id="docDoses">
+            <option value="unknown">Unknown (not documented)</option>
+            <option value="0">0 documented doses</option>
+            <option value="1">1 documented dose</option>
+            <option value="2">2+ documented doses</option>
+          </select>
+          <div class="note">Self-report does not count; undocumented = “unknown”.</div>
+        </div>
+
+        <div class="field">
+          <label for="otherImmunity">Other evidence of immunity</label>
+          <select id="otherImmunity">
+            <option value="none">None</option>
+            <option value="labImmunity">Lab evidence of immunity (IgG+)</option>
+            <option value="disease">Lab-confirmed measles disease</option>
+            <option value="bornBefore1957">Birth before 1957</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Age</label>
+          <div class="twoCol" style="gap:10px">
+            <div class="field" style="gap:6px">
+              <label for="ageYears" style="font-size:11px;color:#6e8193">Years</label>
+              <input id="ageYears" type="number" min="0" placeholder="e.g., 0, 1, 25">
+            </div>
+            <div class="field" style="gap:6px">
+              <label for="ageExtraMonths" style="font-size:11px;color:#6e8193">Months (if &lt;2y)</label>
+              <select id="ageExtraMonths">
+                <option value="">—</option>
+                <option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                <option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option>
+                <option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option>
+              </select>
+            </div>
+          </div>
+          <div class="note">Used for age-based PEP logic.</div>
+        </div>
+
+        <div class="check">
+          <input id="reportsUnvaccinated" type="checkbox">
+          <label for="reportsUnvaccinated">Reports no history of measles vaccination (“unvaccinated” by report)</label>
+        </div>
+
+        <div class="check">
+          <input id="contactPregnant" type="checkbox">
+          <label for="contactPregnant">Pregnant</label>
+        </div>
+
+        <div class="check">
+          <input id="contactSeverelyImmuno" type="checkbox">
+          <label for="contactSeverelyImmuno">Severely immunocompromised</label>
+        </div>
+
+        <div class="check">
+          <input id="contactHCP" type="checkbox">
+          <label for="contactHCP">Healthcare personnel (HCP exposure management)</label>
+        </div>
+
+        <div class="check">
+          <input id="igGiven" type="checkbox">
+          <label for="igGiven">IG administered as PEP</label>
+        </div>
+
+        <div class="field">
+          <label for="weightKg">Weight (kg) — IG dosing helper (verify protocol)</label>
+          <input id="weightKg" type="number" step="0.1" min="0" placeholder="e.g., 12.5">
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="muted">
+        <div class="metric">
+          <div class="k">Exposure assessment</div>
+          <div class="v" id="exposureAssessment">Enter case rash onset and exposure dates.</div>
+        </div>
+
+        <div class="metric">
+          <div class="k">Immune status of contact</div>
+          <div class="v" id="immOut">—</div>
+        </div>
+
+        <div class="metric">
+          <div class="k">PEP guidance (based on initial exposure)</div>
+          <div class="v">
+            <div id="pepAdvice">Enter initial exposure date.</div>
+            <div class="note" id="igDosing"></div>
+            <div class="note" id="pepNote" style="margin-top:8px"></div>
+          </div>
+        </div>
+
+        <div class="metric">
+          <div class="k">Monitoring (PUM)</div>
+          <div class="v">
+            Monitor through: <strong id="monTo">—</strong>
+            <div class="note" id="monNote"></div>
+          </div>
+        </div>
+
+        <div class="metric">
+          <div class="k">Exclusion window (if susceptible/unknown)</div>
+          <div class="v">
+            <strong id="exFrom">—</strong> → <strong id="exTo">—</strong>
+            <div class="note" id="exNote"></div>
+          </div>
+        </div>
+
+        <div class="btns">
+          <button id="clearContactBtn" type="button">Clear contact fields</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<footer>Standalone single-file tool. No frameworks required.</footer>
+
+</div>
+
+<script>
+/* ===== UTC-safe date helpers (prevents “epoch/Y2K” weirdness) ===== */
+function parseISODateUTC(iso){
+  if (!iso || typeof iso !== 'string') return null;
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  const y = Number(m[1]), mo = Number(m[2]), d = Number(m[3]);
+  if (!y || mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+  const dt = new Date(Date.UTC(y, mo - 1, d));
+  if (Number.isNaN(dt.getTime())) return null;
+  return dt;
+}
+function fmtUTC(dt){
+  if (!dt || Number.isNaN(dt.getTime())) return '—';
+  const y = dt.getUTCFullYear();
+  const m = String(dt.getUTCMonth() + 1).padStart(2,'0');
+  const d = String(dt.getUTCDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+function addDaysISO(iso, n){
+  const dt = parseISODateUTC(iso);
+  if (!dt) return '—';
+  dt.setUTCDate(dt.getUTCDate() + n);
+  return fmtUTC(dt);
+}
+function daysBetweenISO(a, b){
+  const d1 = parseISODateUTC(a);
+  const d2 = parseISODateUTC(b);
+  if (!d1 || !d2) return undefined;
+  const ms = d2.getTime() - d1.getTime();
+  return Math.floor(ms / (1000*60*60*24));
+}
+function clamp(n, min, max){
+  return Math.max(min, Math.min(max, n));
+}
+function maxISODate(a, b){
+  const da = parseISODateUTC(a);
+  const db = parseISODateUTC(b);
+  if (!da || !db) return null;
+  return da >= db ? a : b;
+}
+function minISODate(a, b){
+  const da = parseISODateUTC(a);
+  const db = parseISODateUTC(b);
+  if (!da || !db) return null;
+  return da <= db ? a : b;
+}
+function intervalsOverlap(start1, end1, start2, end2){
+  const s1 = parseISODateUTC(start1);
+  const e1 = parseISODateUTC(end1);
+  const s2 = parseISODateUTC(start2);
+  const e2 = parseISODateUTC(end2);
+  if (!s1 || !e1 || !s2 || !e2) return false;
+  return s1 <= e2 && s2 <= e1;
+}
+function getCaseInfectiousWindow(){
+  if (!rashOnset.value) return null;
+  return {
+    start: addDaysISO(rashOnset.value, -4),
+    end: addDaysISO(rashOnset.value, 4)
+  };
+}
+
+const el = id => document.getElementById(id);
+
+/* ===== Elements: Case ===== */
+const rashPresent = el('rashPresent');
+const rashOnset = el('rashOnset');
+const rash3d = el('rash3d');
+const feverAny = el('feverAny');
+const fever101 = el('fever101');
+const ccc = el('ccc');
+const caseVaccinated = el('caseVaccinated');
+const koplikSpots = el('koplikSpots');
+const labPCR = el('labPCR');
+const labIgM = el('labIgM');
+const epiLink = el('epiLink');
+const caseImmuno = el('caseImmunocompromised');
+
+const caseClass = el('caseClass');
+const caseTiming = el('caseTiming');
+
+const testingGuidance = el('testingGuidance');
+const isolationGuidance = el('isolationGuidance');
+const reportingGuidance = el('reportingGuidance');
+
+const clearCaseBtn = el('clearCaseBtn');
+
+/* ===== Elements: Contact ===== */
+const firstExposure = el('firstExposure');
+const lastExposure = el('lastExposure');
+const today = el('today');
+const contactCategory = el('contactCategory');
+const docDoses = el('docDoses');
+const otherImmunity = el('otherImmunity');
+const ageYears = el('ageYears');
+const ageExtraMonths = el('ageExtraMonths');
+const reportsUnvaccinated = el('reportsUnvaccinated');
+const contactPregnant = el('contactPregnant');
+const contactSeverelyImmuno = el('contactSeverelyImmuno');
+const contactHCP = el('contactHCP');
+const igGiven = el('igGiven');
+const weightKg = el('weightKg');
+
+const exposureAssessment = el('exposureAssessment');
+const immOut = el('immOut');
+const pepAdvice = el('pepAdvice');
+const igDosing = el('igDosing');
+const pepNote = el('pepNote');
+const monTo = el('monTo');
+const monNote = el('monNote');
+const exFrom = el('exFrom');
+const exTo = el('exTo');
+const exNote = el('exNote');
+const clearContactBtn = el('clearContactBtn');
+
+/* ===== Defaults ===== */
+today.value = fmtUTC(new Date());
+
+/* ===== Age helper for PEP logic ===== */
+function getAgeMonthsForPep(){
+  const y = parseInt(ageYears.value || '', 10);
+  const m = parseInt(ageExtraMonths.value || '', 10);
+
+  const hasYears = !Number.isNaN(y) && y >= 0;
+  const hasMonths = !Number.isNaN(m) && m >= 0;
+
+  if (!hasYears && !hasMonths) return null;
+  if (hasYears && y >= 2) return y * 12;
+
+  const yy = hasYears ? y : 0;
+  const mm = hasMonths ? m : 0;
+  return (yy * 12) + mm;
+}
+
+/* ===== Immunity rules ===== */
+function requiredDosesForCategory(cat){
+  switch(cat){
+    case 'preschool': return 1;
+    case 'k12': return 2;
+    case 'postHS': return 2;
+    case 'hcp': return 2;
+    case 'closeContactImmunocomp': return 2;
+    case 'hivNotSevere': return 2;
+    case 'adultOther':
+    default: return 1;
+  }
+}
+
+function immunityStatus(){
+  const cat = contactCategory.value;
+  const req = requiredDosesForCategory(cat);
+
+  if (otherImmunity.value === 'labImmunity'){
+    return {status:'immune', detail:'Immune: lab evidence of immunity.', required:req};
+  }
+  if (otherImmunity.value === 'disease'){
+    return {status:'immune', detail:'Immune: laboratory-confirmed prior measles disease.', required:req};
+  }
+
+  if (otherImmunity.value === 'bornBefore1957'){
+    const treatAsHCP = (cat === 'hcp') || contactHCP.checked;
+
+    if (!treatAsHCP){
+      return {status:'immune', detail:'Immune: birth before 1957 (non-HCP).', required:req};
+    }
+
+    return {
+      status:'partial',
+      detail:'HCP: birth before 1957 noted, but not sufficient alone for exposure management—use 2 documented MMR doses or lab immunity per facility/public health guidance.',
+      required:2
+    };
+  }
+
+  const doses = docDoses.value;
+  const isUnvaxByReport = reportsUnvaccinated.checked;
+
+  if (doses === 'unknown'){
+    if (isUnvaxByReport){
+      return {status:'susceptible', detail:'Unvaccinated by report; no documentation located.', required:req};
+    }
+    return {status:'unknown', detail:'Unknown vaccination status (no written documentation).', required:req};
+  }
+
+  const d = parseInt(doses, 10);
+  if (Number.isNaN(d)){
+    return {status:'unknown', detail:'Unknown vaccination status.', required:req};
+  }
+
+  const treatAsHCP = (cat === 'hcp') || contactHCP.checked;
+  if (treatAsHCP){
+    if (d >= 2){
+      return {status:'immune', detail:'HCP: meets 2-dose documentation requirement.', required:2};
+    }
+    if (d === 1){
+      return {status:'immune', detail:'HCP: presumptive immunity for work with 1 documented dose; give 2nd dose ≥28 days after dose 1.', required:2};
+    }
+    return {status:'susceptible', detail:'HCP: 0 documented doses (nonimmune).', required:2};
+  }
+
+  if (d >= req){
+    return {status:'immune', detail:`Meets documentation requirement for this category (${req} dose${req===1?'':'s'}).`, required:req};
+  }
+  if (d === 0){
+    return {status:'susceptible', detail:'0 documented doses (nonimmune).', required:req};
+  }
+  return {status:'partial', detail:`Insufficient documentation for this category (${d} of ${req} documented dose${req===1?'':'s'}).`, required:req};
+}
+
+/* ===== Internal only: suspicion score for branching logic ===== */
+function computeSuspicionScore(){
+  let score = 0;
+
+  if (feverAny.checked) score += 2;
+  if (rashPresent.checked || rashOnset.value) score += 2;
+  if (ccc.checked) score += 2;
+  if (koplikSpots.checked) score += 2;
+
+  if (fever101.checked) score += 1;
+  if (rash3d.checked) score += 1;
+
+  const v = docDoses.value;
+  if (v === '0' || v === 'unknown') score += 1;
+
+  if (epiLink.checked) score += 2;
+
+  const labsPending = (labPCR.value === 'pending' || labIgM.value === 'pending');
+  const compatible = feverAny.checked && (rashPresent.checked || rashOnset.value) && ccc.checked;
+  if (labsPending && compatible) score += 1;
+
+  const numeric = clamp(score, 0, 10);
+
+  let level = "Low";
+  if (numeric >= 9) level = "Very high";
+  else if (numeric >= 6) level = "High";
+  else if (numeric >= 3) level = "Moderate";
+
+  return { scoreRaw: score, score: numeric, level };
+}
+
+/* ===== Case next steps ===== */
+function renderOpsGuidance(classification, suspicion){
+  const labsPending = (labPCR.value === 'pending' || labIgM.value === 'pending');
+  const pcrDone = (labPCR.value !== 'na');
+  const igmDone = (labIgM.value !== 'na');
+  const anyLabDoneOrPending = pcrDone || igmDone;
+
+  const highConcern =
+    classification.startsWith('Confirmed') ||
+    classification.startsWith('Probable') ||
+    classification.startsWith('Suspected');
+
+  if (!anyLabDoneOrPending && highConcern){
+    testingGuidance.innerHTML = `
+      <strong>Order measles testing now.</strong>
+      <ul style="margin:6px 0 0 18px; padding:0">
+        <li>Order <strong>measles rRT-PCR</strong> ASAP.</li>
+        <li>Order <strong>measles IgM</strong>.</li>
+      </ul>
+      <div class="note" style="margin-top:8px">
+        If suspicion remains high and IgM was drawn very early, a repeat specimen may be needed.
+      </div>
+    `;
+  } else if (labsPending){
+    testingGuidance.innerHTML = `
+      <strong>Testing has already been ordered.</strong>
+      <div class="note" style="margin-top:8px">
+        Maintain appropriate precautions while results are pending.
+      </div>
+    `;
+  } else if (labPCR.value === 'pos' || labIgM.value === 'pos'){
+    testingGuidance.innerHTML = `
+      <strong>Testing already supports measles workup.</strong>
+      <div class="note" style="margin-top:8px">
+        Focus now on isolation, reporting, and contact follow-up.
+      </div>
+    `;
+  } else {
+    testingGuidance.innerHTML = `
+      <div class="note" style="margin:0">
+        Testing guidance will appear here based on the information entered above.
+      </div>
+    `;
+  }
+
+  if (classification.startsWith('Confirmed') || classification.startsWith('Probable')){
+    isolationGuidance.innerHTML = `
+      <strong>Use airborne isolation.</strong>
+      <div class="note" style="margin-top:8px">
+        Treat as measles and maintain airborne precautions.
+        ${caseImmuno.checked ? ' Because the patient is immunocompromised, consider longer precautions based on clinical and public health guidance.' : ''}
+      </div>
+    `;
+  } else if (classification.startsWith('Suspected')){
+    isolationGuidance.innerHTML = `
+      <strong>Keep measles in the differential and use airborne precautions while evaluating.</strong>
+      <div class="note" style="margin-top:8px">
+        Do not relax precautions until measles is ruled out or an alternate explanation is established.
+      </div>
+    `;
+  } else {
+    isolationGuidance.innerHTML = `
+      <div class="note" style="margin:0">
+        Isolation guidance will appear here when entered findings support measles evaluation.
+      </div>
+    `;
+  }
+
+  if (classification.startsWith('Confirmed') || classification.startsWith('Probable') || suspicion.score >= 5){
+    reportingGuidance.innerHTML = `
+      <strong>Call Public Health: 541-526-9251.</strong>
+      <div class="note" style="margin-top:8px">
+        Coordinate testing, isolation, and next response steps.
+      </div>
+    `;
+  } else if (classification.startsWith('Suspected')){
+    reportingGuidance.innerHTML = `
+      <strong>Consider Public Health consultation if concern remains.</strong>
+      <div class="note" style="margin-top:8px">
+        Especially important if testing is being ordered or clinical concern is increasing.
+      </div>
+    `;
+  } else {
+    reportingGuidance.innerHTML = `
+      <div class="note" style="margin:0">
+        Reporting guidance will appear here when indicated by the case information above.
+      </div>
+    `;
+  }
+}
+
+/* ===== Case classification ===== */
+function computeCase(){
+  const rashIsPresent = (rashPresent.checked || !!rashOnset.value || rash3d.checked);
+  const hasSomeSymptoms = feverAny.checked || rashIsPresent || ccc.checked || koplikSpots.checked;
+  const meetsClinicalDescription = rash3d.checked && fever101.checked && ccc.checked;
+
+  const pcrPos = (labPCR.value === 'pos');
+  const igmPos = (labIgM.value === 'pos');
+
+  const labsPendingOrNotDone =
+    (labPCR.value === 'pending' || labIgM.value === 'pending' || labPCR.value === 'na' || labIgM.value === 'na');
+
+  let cls = 'Does not meet measles surveillance definitions (based on entered findings)';
+
+  if (pcrPos){
+    cls = 'Confirmed (laboratory confirmed by PCR)';
+  }
+  else if (epiLink.checked && hasSomeSymptoms){
+    cls = 'Confirmed (direct epidemiologic linkage + compatible illness)';
+  }
+  else if (igmPos && hasSomeSymptoms){
+    cls = 'Confirmed (laboratory evidence: IgM positive + compatible illness)';
+  }
+  else if (igmPos && !hasSomeSymptoms){
+    cls = 'Suspected (IgM positive but illness not clearly compatible — verify timing/specimen; consider repeat/confirm with PCR)';
+  }
+  else if (meetsClinicalDescription && !epiLink.checked && (labPCR.value === 'na' && labIgM.value === 'na')){
+    cls = 'Probable (meets clinical description; no epi-link; no measles labs)';
+  }
+  else if (meetsClinicalDescription && !epiLink.checked){
+    cls = 'Probable (meets clinical description; no epi-link; labs nonconfirmatory/pending)';
+  }
+  else {
+    const compatibleIllness = hasSomeSymptoms || (feverAny.checked && ccc.checked);
+    if (compatibleIllness && labsPendingOrNotDone){
+      cls = 'Suspected (compatible illness; criteria incomplete and/or labs pending)';
+    }
+  }
+
+  caseClass.textContent = cls;
+
+  if (rashOnset.value){
+    const isoUntil = addDaysISO(rashOnset.value, 4);
+    if (isoUntil === '—'){
+      caseTiming.textContent = 'Enter rash onset to calculate.';
+    } else {
+      caseTiming.innerHTML = `Isolation/airborne precautions through <strong>${isoUntil}</strong> (Day 4 after rash onset, inclusive)` +
+        (caseImmuno.checked ? ` <span class="warn">(immunocompromised: consider longer per clinical/public health judgment)</span>` : '.');
+    }
+  } else {
+    caseTiming.textContent = 'Enter rash onset to calculate.';
+  }
+
+  const s = computeSuspicionScore();
+  renderOpsGuidance(cls, s);
+}
+
+/* ===== Contact computations ===== */
+function computeContact(){
+  const todayVal = today.value || fmtUTC(new Date());
+
+  const imm = immunityStatus();
+  renderImmunity(imm);
+
+  if (!firstExposure.value){
+    exposureAssessment.textContent = 'Enter case rash onset and exposure dates.';
+    pepAdvice.textContent = 'Enter initial exposure date to see PEP guidance.';
+    igDosing.textContent = '';
+    pepNote.textContent = '';
+    monTo.textContent = '—';
+    monNote.textContent = '';
+    exFrom.textContent = '—';
+    exTo.textContent = '—';
+    exNote.textContent = '';
+    return;
+  }
+
+  if (!lastExposure.value) lastExposure.value = firstExposure.value;
+
+  const caseWindow = getCaseInfectiousWindow();
+
+  let effectiveFirstExposure = firstExposure.value;
+  let effectiveLastExposure = lastExposure.value;
+
+  if (caseWindow){
+    const overlaps = intervalsOverlap(
+      firstExposure.value,
+      lastExposure.value,
+      caseWindow.start,
+      caseWindow.end
+    );
+
+    if (!overlaps){
+      exposureAssessment.innerHTML = `
+        <span class="bad"><strong>Not a measles exposure.</strong></span>
+        Entered dates fall outside the case infectious period
+        (<strong>${caseWindow.start}</strong> through <strong>${caseWindow.end}</strong>).
+      `;
+
+      pepAdvice.innerHTML = 'No measles exposure identified based on the entered dates.';
+      igDosing.textContent = '';
+      pepNote.textContent = 'No PEP indicated because the entered dates do not overlap the infectious period.';
+      monTo.textContent = '—';
+      monNote.textContent = 'No monitoring needed for this measles event based on the entered dates.';
+      exFrom.textContent = '—';
+      exTo.textContent = '—';
+      exNote.textContent = 'No exclusion indicated because this is not a measles exposure.';
+      return;
+    }
+
+    effectiveFirstExposure = maxISODate(firstExposure.value, caseWindow.start);
+    effectiveLastExposure = minISODate(lastExposure.value, caseWindow.end);
+
+    exposureAssessment.innerHTML = `
+      <span class="ok"><strong>Exposure confirmed.</strong></span>
+      Using overlap with case infectious period:
+      <strong>${effectiveFirstExposure}</strong> through <strong>${effectiveLastExposure}</strong>.
+      <div class="note" style="margin-top:8px">
+        Case infectious period: ${caseWindow.start} through ${caseWindow.end}.
+      </div>
+    `;
+  } else {
+    exposureAssessment.innerHTML = `
+      <span class="warn"><strong>Exposure not yet validated against case timeline.</strong></span>
+      Enter a case rash onset date to verify whether the contact dates overlap the infectious period.
+      <div class="note" style="margin-top:8px">
+        Until rash onset is entered, this section assumes the entered dates are true exposure dates.
+      </div>
+    `;
+  }
+
+  const dse = daysBetweenISO(effectiveFirstExposure, todayVal);
+  if (dse === undefined){
+    pepAdvice.textContent = 'Enter valid dates for initial exposure and today.';
+    monTo.textContent = '—';
+    return;
+  }
+
+  const ageMonths = getAgeMonthsForPep();
+const infant6to11 = (ageMonths !== null) && ageMonths >= 6 && ageMonths <= 11;
+  const under6mo = (ageMonths !== null) ? (ageMonths < 6) : false;
+  const ge6mo = (ageMonths !== null) ? (ageMonths >= 6) : true;
+
+  const eligibleMMR = ge6mo && !contactPregnant.checked && !contactSeverelyImmuno.checked;
+  const igPriority = under6mo || contactPregnant.checked || contactSeverelyImmuno.checked;
+
+  const immune = (imm.status === 'immune');
+
+  if (immune){
+    pepAdvice.innerHTML = '<span class="ok">No PEP indicated</span>: presumptive evidence of immunity documented.';
+  } else {
+    if (dse <= 3){
+      if (eligibleMMR){
+        pepAdvice.innerHTML = '≤72 hours since initial exposure: <span class="ok">MMR now is preferred</span> for vaccine-eligible persons (generally ≥6 months, no contraindications).';
+      } else if (igPriority){
+        pepAdvice.innerHTML = '≤72 hours since initial exposure: <span class="ok">IG is prioritized</span> (infant <6 months, pregnant without immunity, or severely immunocompromised). Administer IG within 6 days of initial exposure.';
+      } else {
+        pepAdvice.innerHTML = '≤72 hours since initial exposure: MMR is preferred if vaccine-eligible; otherwise consider IG within 6 days based on risk/setting.';
+      }
+    } else if (dse <= 6){
+      if (igPriority){
+        pepAdvice.innerHTML = 'Day 4–6 since initial exposure: <span class="ok">IG is indicated/prioritized</span> for those not eligible for MMR (infant <6 months, pregnant without immunity, severely immunocompromised).';
+      } else {
+        pepAdvice.innerHTML = 'Day 4–6 since initial exposure: <span class="ok">IG may be given</span> (must be within 6 days of initial exposure). MMR given now won’t prevent this exposure but helps protect against future exposures.';
+      }
+    } else {
+      pepAdvice.innerHTML = '&gt;6 days since initial exposure: <span class="warn">PEP window closed</span>. Continue monitoring through incubation period.';
+    }
+  }
+
+  pepNote.textContent = 'Do not administer MMR and IG simultaneously. Do not delay PEP pending titers. Verify IG product/dose per local protocol.';
+if (infant6to11) {
+  pepNote.textContent += ' Infant age 6–11 months: an early MMR dose used for exposure response does not replace the routine 12–15 month dose and later dose(s).';
+}
+  if (weightKg.value && parseFloat(weightKg.value) > 0){
+    const w = parseFloat(weightKg.value);
+    const imig = Math.min(0.5 * w, 15);
+    const ivigG = (0.4 * w).toFixed(1);
+    igDosing.innerHTML = `Dosing helper (verify local protocol): IMIG ${imig.toFixed(1)} mL (0.5 mL/kg, max 15 mL). IVIG 400 mg/kg = ${ivigG} g.`;
+  } else {
+    igDosing.textContent = '';
+  }
+
+  const monEnd = addDaysISO(effectiveLastExposure, igGiven.checked ? 28 : 21);
+  monTo.textContent = monEnd;
+
+  if (contactHCP.checked){
+    monNote.textContent = 'HCP: daily symptom monitoring during exposure period; if IG, monitor to Day 28 after last exposure.';
+  } else {
+    monNote.textContent = 'If susceptible: symptom reporting at least 3x/week through Day 21 after last exposure (extend to Day 28 if IG).';
+  }
+
+  const needsExclusion = (imm.status === 'susceptible' || imm.status === 'unknown' || imm.status === 'partial');
+
+  if (!needsExclusion){
+    exFrom.textContent = '—';
+    exTo.textContent = '—';
+    exNote.textContent = 'No exclusion indicated based on documented immunity.';
+    return;
+  }
+
+  if (contactHCP.checked){
+    exFrom.textContent = addDaysISO(effectiveFirstExposure, 5);
+    exTo.textContent = addDaysISO(effectiveLastExposure, 21);
+    exNote.textContent = igGiven.checked
+      ? 'HCP: exclude from Day 5 after first exposure through Day 21 after last exposure; IG may prolong incubation—monitor to Day 28 and consider extending work exclusion.'
+      : 'HCP: exclude from Day 5 after first exposure through Day 21 after last exposure; daily symptom monitoring.';
+  } else {
+    exFrom.textContent = todayVal;
+    exTo.textContent = addDaysISO(effectiveLastExposure, 21);
+    exNote.textContent = igGiven.checked
+      ? 'Exclude from school/childcare/work until 21 days after last exposure; IG may prolong incubation—monitor to Day 28 after last exposure.'
+      : 'Exclude from school/childcare/work until 21 days after last exposure.';
+  }
+}
+
+/* ===== Render immunity line ===== */
+function renderImmunity(imm){
+  const catLabel = contactCategory.options[contactCategory.selectedIndex].text;
+  const req = imm.required ?? requiredDosesForCategory(contactCategory.value);
+const ageMonths = getAgeMonthsForPep();
+const infant6to11 = (ageMonths !== null) && ageMonths >= 6 && ageMonths <= 11;
+  let statusLabel = '';
+  if (imm.status === 'immune') statusLabel = '<span class="ok">Immune</span>';
+  else if (imm.status === 'partial') statusLabel = '<span class="warn">Not fully documented</span>';
+  else if (imm.status === 'unknown') statusLabel = '<span class="warn">Unknown</span>';
+  else statusLabel = '<span class="bad">Susceptible</span>';
+
+ immOut.innerHTML =
+  `<strong>${catLabel}</strong><br>` +
+  `${statusLabel}: ${imm.detail}` +
+  `<div class="note">Category requirement: ${req} documented dose${req===1?'':'s'} (unless immune by labs/disease/birth-year exception as applicable).</div>` +
+  (infant6to11
+    ? `<div class="note">Infant 6–11 months: age may allow MMR for PEP, but this does not count as completion of the routine series.</div>`
+    : '');
+
+/* ===== Actions ===== */
+function clearCaseFields(){
+  rashPresent.checked = false;
+  rashOnset.value = '';
+  rash3d.checked = false;
+  feverAny.checked = false;
+  fever101.checked = false;
+  ccc.checked = false;
+  caseVaccinated.checked = false;
+  koplikSpots.checked = false;
+  labPCR.value = 'na';
+  labIgM.value = 'na';
+  epiLink.checked = false;
+  caseImmuno.checked = false;
+}
+function clearContactFields(){
+  firstExposure.value = '';
+  lastExposure.value = '';
+  contactCategory.selectedIndex = 0;
+  docDoses.value = 'unknown';
+  otherImmunity.value = 'none';
+  ageYears.value = '';
+  ageExtraMonths.value = '';
+  reportsUnvaccinated.checked = false;
+  contactPregnant.checked = false;
+  contactSeverelyImmuno.checked = false;
+  contactHCP.checked = false;
+  igGiven.checked = false;
+  weightKg.value = '';
+}
+
+clearCaseBtn.addEventListener('click', () => { clearCaseFields(); computeAll(); });
+clearContactBtn.addEventListener('click', () => { clearContactFields(); computeAll(); });
+
+/* ===== Wiring ===== */
+function computeAll(){
+  computeCase();
+  computeContact();
+}
+
+document.querySelectorAll('input, select').forEach(x=>{
+  x.addEventListener('input', computeAll);
+  x.addEventListener('change', computeAll);
+});
+
+computeAll();
+</script>
+</body>
+</html>
